@@ -1,0 +1,90 @@
+---
+title: "Project 2"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(MVA)
+
+
+```
+2) Clean data, detect outliers, and visualizations
+
+First, rather than eliminate rows with missing data, we use value insertion to fill in missing values. This allows us to keep all samples even if they are missing just one data point but still have accurate information for the rest of them.
+
+```{r}
+nba <- read.csv("nba.csv")
+
+library(mvnmle)
+
+
+nba2 <- nba
+for(q in 3:ncol(nba2)){
+ nba2[is.na(nba2[, q]), q] <- median(nba2[, q], na.rm = TRUE)
+}
+
+
+```
+
+Next, we look at potential outliers for some of our player attributes, and visualize them with a bivariate boxplot
+
+```{r}
+library(MVA)
+mydata <- nba2[, c("Height", "TRB")]
+mydata2 <- nba2[, c("Height", "AST")]
+mydata3 <- nba2[, c("FT", "X3P")]
+mydata4 <- nba2[, c("PTS", "FG")]
+mydata5 <- nba2[, c("AST", "STL")]
+bvbox(mydata, xlab = "Height", ylab = "Total Rebounds (per 36 minutes")
+bvbox(mydata2, xlab = "Height", ylab = "Assists (per 36 minutes)")
+bvbox(mydata3, xlab = "Free Throw Percentage", ylab = "3 Point Percentage (per 36 minutes)")
+bvbox(mydata4, xlab = "Points", ylab = "FG Percentage (per 36 minutes)")
+bvbox(mydata5, xlab = "Assists", ylab = "Steals")
+
+
+```
+
+We see some outliers in the rebound, steals, assists and points groups. We remove the extreme outliers in order to make our correlation coefficients more accurate
+```{r}
+outliers <- match(c("Zhou Qi", "Alan Williams",
+                   "Terrence Jones", "Tyler Davis", "Trevon Duval", "Kostas Antetokounmpo", "Gary Payton", "Zach Lofton"),
+                 nba2$Player)
+nba2 <- nba2[-outliers,]
+
+```
+
+Next, we run a scatterplot matrix to plot all numeric variables and their linear associations, in order to identify relationships. We also add in regression lines for linear fits
+
+```{r}
+
+plot(nba2)
+pairs(nba2,
+panel = function (x, y, ...) {
+points(x, y, ...) 
+abline(lm(y ~ x), col = "grey")
+ }, pch = ".", cex = 1.5)
+
+```
+
+Next, we run some 3d scatter plots in different groupings to see how the variables relate 
+
+
+```{r}
+library("scatterplot3d")
+
+scatterplot3d(nba2$FT, nba2$X3P, nba2$PTS,
+ ,type="h",angle = 40)
+
+scatterplot3d(nba2$STL, nba2$AST, nba2$FG,
+ ,type="h",angle = 40)
+
+scatterplot3d(nba2$BLK, nba2$Height, nba2$Age,
+ ,type="h",angle = 40)
+
+
+```
+
+
